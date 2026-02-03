@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TicketUI – FULL Mobile Safe Version</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, system-ui;
+  }
+
+  /* Invisible but REAL color input (mobile-safe) */
+  .color-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body class="w-full h-screen flex bg-[#1797D0]">
+
+<div class="flex-1 flex items-center justify-center relative overflow-hidden">
+
+  <!-- BACKGROUND -->
+  <div id="bgImageContainer"
+       class="absolute inset-0 bg-no-repeat bg-center bg-contain"></div>
+
+  <!-- PHONE -->
+  <div class="relative w-[375px] h-[812px] z-10">
+
+    <!-- QR RING -->
+    <div id="qrRing"
+      class="absolute"
+      style="
+        top:82px;
+        left:50%;
+        transform:translateX(-50%);
+        width:169px;
+        height:169px;
+        border-radius:16px;
+        border:13px solid;
+        position:relative;
+      ">
+      <input type="color" class="color-input"
+        onchange="setRingColor(this.value)" />
+    </div>
+
+    <!-- COLOR BARS -->
+    <div class="absolute flex"
+      style="
+        top:674px;
+        left:50%;
+        transform:translateX(-50%);
+        width:278px;
+        height:20px;
+      ">
+
+      <div id="bar1" class="flex-1 relative">
+        <input type="color" class="color-input"
+          onchange="setBarColor(0, this.value)" />
+      </div>
+
+      <div id="bar2" class="flex-1 relative">
+        <input type="color" class="color-input"
+          onchange="setBarColor(1, this.value)" />
+      </div>
+
+      <div id="bar3" class="flex-1 relative">
+        <input type="color" class="color-input"
+          onchange="setBarColor(2, this.value)" />
+      </div>
+    </div>
+
+    <!-- EXPIRY -->
+    <h3 id="expiryText"
+      class="absolute w-full text-center cursor-pointer select-none"
+      style="top:727px;font-size:21px;font-weight:600;">
+      Expires in 60:00
+    </h3>
+
+    <!-- MIDDLE NUMBER-->
+    <h1 id="middleNumber"
+      class="absolute w-full text-center cursor-pointer select-none"
+      style="top:309px;font-size:56px;font-weight:800;">
+      2
+    </h1>
+
+  </div>
+</div>
+
+<script>
+/* =====================================================
+   DEFAULT CONFIG  ⭐ CHANGE COLORS HERE ⭐
+===================================================== */
+const DEFAULT_RING_COLOR = "#feccd5";
+const DEFAULT_BAR_COLORS = ["#c23474", "#4565a0", "#b8f981"];
+
+/* =====================================================
+   STATE (initialized from defaults)
+===================================================== */
+let ringColor = DEFAULT_RING_COLOR;
+let barColors = [...DEFAULT_BAR_COLORS];
+let middleValue = 2;
+
+let expiryDuration = 3600;
+let timeLeft = expiryDuration;
+let currentBgIndex = 1;
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+const qrRing = document.getElementById("qrRing");
+const bars = [
+  document.getElementById("bar1"),
+  document.getElementById("bar2"),
+  document.getElementById("bar3")
+];
+const expiryText = document.getElementById("expiryText");
+const middleNumber = document.getElementById("middleNumber");
+const bgImageContainer = document.getElementById("bgImageContainer");
+
+/* =====================================================
+   BACKGROUNDS
+===================================================== */
+const BG1 = "https://raw.githubusercontent.com/ywbhsbj/pass/main/assets/bg1.jpg.jpeg";
+const BG2 = "https://raw.githubusercontent.com/ywbhsbj/pass/main/assets/bg2.jpg.jpg";
+
+/* =====================================================
+   APPLY COLORS
+===================================================== */
+function applyColors() {
+  qrRing.style.borderColor = ringColor;
+  bars.forEach((b, i) => b.style.background = barColors[i]);
+}
+
+/* =====================================================
+   COLOR HANDLERS (mobile safe)
+===================================================== */
+function setRingColor(color) {
+  ringColor = color;
+  applyColors();
+}
+
+function setBarColor(index, color) {
+  barColors[index] = color;
+  applyColors();
+}
+
+/* =====================================================
+   BLINK – FIXED 600ms
+===================================================== */
+let visible = true;
+setInterval(() => {
+  visible = !visible;
+  const o = visible ? "1" : "0";
+  bars.forEach(b => b.style.opacity = o);
+}, 600);
+
+/* =====================================================
+   TIME
+===================================================== */
+function updateTime() {
+  const m = Math.floor(timeLeft / 60);
+  const s = String(timeLeft % 60).padStart(2, "0");
+  expiryText.textContent = `Expires in ${m}:${s}`;
+}
+
+setInterval(() => {
+  if (timeLeft > 0) {
+    timeLeft--;
+    updateTime();
+  }
+}, 1000);
+
+/* =====================================================
+   INTERACTIONS
+===================================================== */
+middleNumber.onclick = () => {
+  middleValue = (middleValue + 1) % 10;
+  middleNumber.textContent = middleValue;
+};
+
+expiryText.onclick = () => {
+  expiryDuration = expiryDuration === 3600 ? 1800 : 3600;
+  timeLeft = expiryDuration;
+
+  bgImageContainer.style.backgroundImage =
+    currentBgIndex === 1 ? `url(${BG2})` : `url(${BG1})`;
+  currentBgIndex = currentBgIndex === 1 ? 2 : 1;
+
+  updateTime();
+};
+
+/* =====================================================
+   INIT
+===================================================== */
+bgImageContainer.style.backgroundImage = `url(${BG1})`;
+applyColors();
+updateTime();
+</script>
+
+</body>
+</html>
